@@ -1,0 +1,76 @@
+name: sam-http-server
+
+#Application with multiple replicas with pod Antiaffinity enabled to ensure HA.
+replicas: 3
+
+#Labels for application
+labels:
+  app: sam-http-server
+
+#Image of microservice
+image: sam0392in/sam:sam-http-server_v0.1
+
+#Port on which application pod is exposed
+containerPort: 5000
+
+#Resource to be provided to the container of pod
+resources:
+  requests:
+    memory: "128Mi"
+    cpu: "256m"
+  limits:
+    memory: "256Mi"
+    cpu: "500m"
+
+
+livenessProbe:
+  enabled: true
+  path: /health
+  port: 5000
+  initialDelaySeconds: 5
+  periodSeconds: 5
+  timeoutSeconds: 5
+  successThreshold: 1
+  failureThreshold: 5
+
+readinessProbe:
+  enabled: true
+  path: /health
+  port: 5000
+  initialDelaySeconds: 5
+  periodSeconds: 5
+  timeoutSeconds: 5
+  successThreshold: 1
+  failureThreshold: 5
+
+
+#Run as non root user
+securityContext:
+  enabled: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  allowPrivilegeEscalation: true
+
+#pod Antiaffinity key value selection
+podAntiAffinity:
+  enabled: true
+  key: app
+  value: sam-http-server
+
+#Service details
+service:
+  name: sam-http-server-svc
+  port: 80
+  type: ClusterIP
+
+#Ingress Details
+ingress:
+  name: sam-http-server-ingress
+  #Change the domain as per your configuration
+  #This domain is not supposed to be used for any personal or professional purpose.
+  host1: sam-app.samdevops.co.in
+  path1: /
+  host2: aboutme.samdevops.co.in
+  path2: /myinfo
+
+

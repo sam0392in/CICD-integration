@@ -1,0 +1,27 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: sam-http-server
+spec:
+  destination:
+    name: ''
+    namespace: webapp
+    server: 'https://kubernetes.default.svc'
+  source:
+    path: ''
+    # repo url will be chartmuseum ingress / svc
+    repoURL: 'http://chartmuseum.samdevops.co.in'
+    targetRevision: '*'
+    # target revision is set as * so that it can fetch all versions from the specified helm chart.
+    # any specific revision can also be set like 0.1 / 0.2 etc, but then updates will not be synced.
+    chart: sam-http-server
+    helm:
+      valueFiles:
+        - values.yaml
+  project: default
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      prune: true
+      selfHeal: true

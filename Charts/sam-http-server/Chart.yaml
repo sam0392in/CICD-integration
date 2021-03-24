@@ -1,0 +1,8 @@
+apiVersion: v1
+name: sam-http-server
+version: "0.1"
+appVersion: release/0.1
+maintainers:
+  - name: Samarth
+description: This Helm chart will deploy sample http server
+icon: https://github.com/sam0392in/sam-distributions/blob/master/helm-chart-image.png

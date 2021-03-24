@@ -51,8 +51,8 @@ spec:
 #      secret:
 #        secretName: "aws"
     - name: "volume-2"
-     secret:
-       secretName: "docker-cfg"      
+      secret:
+        secretName: "docker-cfg"      
     - emptyDir:
         medium: ""
       name: "workspace-volume"

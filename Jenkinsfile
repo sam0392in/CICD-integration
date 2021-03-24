@@ -35,8 +35,8 @@ pipeline {
             steps{
                 container('python-aws'){
                     def text = readFile "Charts/sam-http-server/Chart.yaml"
-                    text.replaceAll("version:*", "version: ${env.GIT_COMMIT}")
-                    text.replaceAll("appVersion:*", "appVersion: ${env.GIT_COMMIT}")
+                    // text.replaceAll("version:*", "version: ${env.GIT_COMMIT}")
+                    // text.replaceAll("appVersion:*", "appVersion: ${env.GIT_COMMIT}")
                     sh '''
                         helm package .
                     '''

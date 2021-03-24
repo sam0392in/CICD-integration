@@ -8,14 +8,41 @@ pipeline {
         }
     }
     stages{
-        stage("build and push image"){
+        
+        stage("build python application"){
             steps{
                 script{
                     container("python-aws"){
-                        sh "echo hello"
+                        sh "python3 -m compileall -l ."
                     }
                 }
             }
         }
+
+        stage("Create and push Docker Image"){
+            steps{
+                script{
+                    container("python-aws"){
+                        sh '''
+                            docker build -t sam0392in/sam:sam-http-server_${env.TAG_NAME}
+                            docker push sam0392in/sam:sam-http-server_${env.TAG_NAME}
+                        '''    
+                    }
+                }
+            }
+        }
+
+        stage("Package application"){
+            steps{
+                script{
+                    container("python-aws"){
+                        sh '''
+                            
+                        '''    
+                    }
+                }
+            }
+        }
+
     }
 }

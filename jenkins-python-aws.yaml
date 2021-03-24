@@ -12,7 +12,7 @@ spec:
       command:
         - "/bin/sh"
         - "-c"
-      image: "sam0392in/sam:devbox"
+      image: "sam0392in/sam:jenkins-python-builder"
       imagePullPolicy: "IfNotPresent"
       name: "python-aws"
       env:

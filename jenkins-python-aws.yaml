@@ -12,7 +12,7 @@ spec:
       command:
         - "/bin/sh"
         - "-c"
-      image: "sam0392in/sam:jenkins-python-builder"
+      image: "sam0392in/jenkins-agents:python-agent"
       imagePullPolicy: "IfNotPresent"
       name: "python-aws"
       env:

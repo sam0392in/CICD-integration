@@ -13,6 +13,7 @@ pipeline {
             steps{
                 script{
                     container("python-aws"){
+                        echo "TAG : ${TAG_NAME}"
                         sh "python3 -m compileall -l ."
                     }
                 }
@@ -24,8 +25,8 @@ pipeline {
                 script{
                     container("python-aws"){
                         sh '''
-                            docker build -t sam0392in/sam:sam-http-server_${env.TAG_NAME}
-                            docker push sam0392in/sam:sam-http-server_${env.TAG_NAME}
+                            docker build -t sam0392in/sam:sam-http-server_${TAG_NAME} .
+                            docker push sam0392in/sam:sam-http-server_${TAG_NAME}
                         '''    
                     }
                 }
@@ -38,7 +39,7 @@ pipeline {
                     container("python-aws"){
                         dir("Charts/sam-http-server"){
                             sh '''
-                                helm package --version ${env.TAG_NAME} .
+                                helm package --version ${TAG_NAME} .
                             ''' 
                         }   
                     }
@@ -51,7 +52,7 @@ pipeline {
                 script{
                     container("python-aws"){
                         sh '''
-                            curl -L --data-binary "@sam-http-server_${env.TAG_NAME}.tgz" http://chartmuseum.samdevops.co.in/api/charts -kv
+                            curl -L --data-binary "@sam-http-server_${TAG_NAME}.tgz" http://chartmuseum-svc.chartmuseum:8080/api/charts -kv
                         '''    
                     }
                 }
@@ -69,7 +70,7 @@ pipeline {
                            echo "sam-http-server already deployed"
                         else
                            echo "Deploying sam-http-server"
-                           #kubectl apply -f argocd-deploy.yaml -n argocd
+                           kubectl apply -f Charts/sam-http-server/argocdapp.yaml -n argocd
                         fi'''
                     }
                 }

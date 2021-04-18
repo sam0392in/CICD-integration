@@ -1,109 +1,83 @@
-def get_new_tag(latest_tag){
-    latest_tag = sh "git describe --tags `git rev-list --tags --max-count=1`"
-    new_tag = latest_tag + 0.01
-    return new_tag
-}
+@Library("sam-jenkins-libraries") _
 
 pipeline {
-    options {
-        buildDiscarder(logRotator(numToKeepStr: '5', daysToKeepStr: '5'))
+  options {
+    buildDiscarder(logRotator(numToKeepStr: '5', daysToKeepStr: '5'))
+  }
+  agent {
+    label "python-agent"
+  }
+  environment {
+    SKAFFOLD_DEFAULT_REPO = "sam0392in/sam"
+  }  
+  stages{
+    stage("build stage"){
+      steps{
+        script{
+          container("python-aws"){
+            pythonBuild()
+            createTag(release: "minor")
+          }
+        }
+      }
     }
-    agent {
-       kubernetes {
-            yamlFile 'jenkins-python-aws.yaml'
+    stage("Create and push Docker Image"){
+      when { branch 'master' }
+      steps{
+        script{
+          container("python-aws"){
+            dockerBuild(skaffoldfile: "skaffold.yaml")
+          }
         }
+      }
     }
-    stages{
-
-        stage("build python application"){
-            steps{
-                script{
-                    container("python-aws"){
-                        if (env.BRANCH_NAME == "master"){
-                            sh "python3 -m compileall -l ."
-                        }
-                        else{
-                            echo "This is PR branch, Only build will take place"
-                        }
-                    }
-                }
-            }
+    stage("package application"){
+      steps{
+        script{
+          container("python-aws"){
+            prepareHelmChart(chartDir: "Charts/sam-http-server")
+          }
         }
-        stage("Tag latest version"){
-            when { branch 'master' }
-            steps{
-                script{
-                    container("python-aws"){
-                        new_tag = get_new_tag()
-                        sh '''
-                            ${GIT_COMMIT}
-                            git tag -a ${new_tag} ${GIT_COMMIT}
-                        '''
-                    }
-                }
-            }
+      }
+    }        
+    stage("Deploy to Dev environment"){
+      when { branch 'master' }
+      steps{
+        script{
+          container("python-aws"){
+            chartName = sh "ls | grep -i *.tgz"
+            pushToChartMuseumw(chart: chartName, chartMuseumEnv: "dev")
+            argocdDeploy(chartDir: "Charts/sam-http-server", argocdAppConfig: "argocdapp.yaml")
+          }
         }
-        stage("Create and push Docker Image"){
-            when { branch 'master' }
-            steps{
-                script{
-                    container("python-aws"){
-                        sh '''
-                            docker build -t sam0392in/sam:sam-http-server_${new_tag} .
-                            docker push sam0392in/sam:sam-http-server_${new_tag}
-                        '''
-                    }
-                }
-            }
-        }
-
-        stage("Package application"){
-            when { branch 'master' }
-            steps{
-                script{
-                    container("python-aws"){
-                        dir("Charts/sam-http-server"){
-                            sh '''
-                                helm package --version ${new_tag} .
-                            '''
-                        }
-                    }
-                }
-            }
-        }
-
-        stage("Push Helm Chart to Chartmuseum"){
-            when { branch 'master' }
-            steps{
-                script{
-                    container("python-aws"){
-                        sh '''
-                            curl -L --data-binary "@sam-http-server_${new_tag}.tgz" http://chartmuseum-svc.chartmuseum:8080/api/charts -kv
-                        '''
-                    }
-                }
-            }
-        }
-
-        stage("Deploy to Dev namespace using argocd"){
-            when { branch 'master' }
-            steps{
-                script{
-                    container("python-aws"){
-                        sh '''
-                            APP=`kubectl get application -n argocd | awk -F \' \' \'{print $1}\'`
-                            echo $APP
-                            if [[ $APP == *"sam-http-server"* ]]
-                            then
-                               echo "sam-http-server already deployed"
-                            else
-                               echo "Deploying sam-http-server"
-                               kubectl apply -f Charts/sam-http-server/argocdapp.yaml -n argocd
-                            fi
-                        '''
-                    }
-                }
-            }
-        }
+      }
     }
+  }
+  post {
+    always {
+      script {
+        cleanWs()
+        //Post Job stage to run always
+        postBuildAlways()
+      }  
+    }
+    success {
+      script {
+        //Post Job stage to run when success
+        postBuildSuccess()
+      }  
+    }
+    failure {
+      script {
+        ////Post Job stage to run when failure
+        postBuildFailed()
+      }  
+    }
+    // fixed {
+    //   script {
+    //     //Run if previous was failure and current is success
+    //     inPostJobFixed()
+    //   }  
+    // }
+  }
 }

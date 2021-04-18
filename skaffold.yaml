@@ -1,0 +1,24 @@
+apiVersion: skaffold/v1beta13
+kind: Config
+metadata:
+  name: sam-http-server
+build:
+  artifacts:
+  - context: .
+    docker:
+      network: host
+      dockerfile: Dockerfile
+    image: "sam0392in/sam"
+  local: {}
+  tagPolicy:
+    envTemplate:
+      template: "sam-http-server_{{ .VERSION }}"
+deploy:
+  helm:
+    releases:
+    - chartPath: Charts/sam-http-server
+      name: sam-http-server
+      setValueTemplates:
+        image: "sam0392in/sam:sam-http-server_{{ .VERSION }}"
+        # image.repository: '{{.DOCKER_REGISTRY}}/nileglobalsw/event-collector'
+        # image.tag: '{{.DIGEST_HEX}}'

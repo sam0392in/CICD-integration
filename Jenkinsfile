@@ -14,7 +14,7 @@ pipeline {
     stage("build stage"){
       steps{
         script{
-          container("python-aws"){
+          container("python"){
             pythonBuild()
             createTag(release: "minor")
           }
@@ -25,7 +25,7 @@ pipeline {
       when { branch 'master' }
       steps{
         script{
-          container("python-aws"){
+          container("python"){
             dockerBuild(skaffoldfile: "skaffold.yaml")
           }
         }
@@ -34,7 +34,7 @@ pipeline {
     stage("package application"){
       steps{
         script{
-          container("python-aws"){
+          container("python"){
             prepareHelmChart(chartDir: "Charts/sam-http-server")
           }
         }
@@ -44,7 +44,7 @@ pipeline {
       when { branch 'master' }
       steps{
         script{
-          container("python-aws"){
+          container("python"){
             chartName = sh "ls | grep -i *.tgz"
             pushToChartMuseumw(chart: chartName, chartMuseumEnv: "dev")
             argocdDeploy(chartDir: "Charts/sam-http-server", argocdAppConfig: "argocdapp.yaml")

@@ -9,14 +9,32 @@ pipeline {
   }
   environment {
     SKAFFOLD_DEFAULT_REPO = "sam0392in/sam"
+    APP_NAME = "sam-http-server"
   }  
   stages{
+    stage("Prepare Environment"){
+      steps{
+        script{
+          container("python"){
+            preBuild(release: "minor")
+            sh "mkdir -p ~/.kube/"
+            configFileProvider([configFile(fileId: 'master-kubeconfig', targetLocation: 'config')]) {
+                sh """
+                    cp config ~/.kube/config
+                    chmod 755 ~/.kube/config
+                    #kubectl get ns
+                """
+            }            
+          }
+        }
+      }
+    }  
     stage("build stage"){
       steps{
         script{
           container("python"){
             pythonBuild()
-            createTag(release: "minor")
+            createTag()
           }
         }
       }
@@ -45,9 +63,9 @@ pipeline {
       steps{
         script{
           container("python"){
-            chartName = sh "ls | grep -i *.tgz"
-            pushToChartMuseumw(chart: chartName, chartMuseumEnv: "dev")
-            argocdDeploy(chartDir: "Charts/sam-http-server", argocdAppConfig: "argocdapp.yaml")
+            chartName = 'Charts/${APP_NAME}/${APP_NAME}-${VERSION}.tgz'
+            pushToChartMuseum(chart: chartName, chartMuseumEnv: "dev")
+            argocdDeploy(chartDir: 'Charts/${APP_NAME}', argocdAppConfig: "argocd-deploy-dev.yaml")
           }
         }
       }

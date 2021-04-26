@@ -10,7 +10,7 @@ spec:
   source:
     path: ''
     # repo url will be chartmuseum ingress / svc
-    repoURL: 'http://dev-chartmuseum.samdevops.co.in'
+    repoURL: 'http://dev-chartmuseum-svc.dev-chartmuseum:8080'
     targetRevision: '*'
     # target revision is set as * so that it can fetch all versions from the specified helm chart.
     # any specific revision can also be set like 0.1 / 0.2 etc, but then updates will not be synced.

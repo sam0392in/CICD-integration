@@ -65,7 +65,7 @@ pipeline {
           container("python"){
             chartName = 'Charts/${APP_NAME}/${APP_NAME}-${VERSION}.tgz'
             pushToChartMuseum(chart: chartName, chartMuseumEnv: "dev")
-            argocdDeploy(chartDir: 'Charts/${APP_NAME}', argocdAppConfig: "argocd-deploy-dev.yaml")
+            argocdDeploy(chartDir: 'Charts/${APP_NAME}', argocdAppConfig: 'argocd-deploy-dev.yaml')
           }
         }
       }

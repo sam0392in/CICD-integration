@@ -1,7 +1,7 @@
 name: sam-http-server
 
 #Application with multiple replicas with pod Antiaffinity enabled to ensure HA.
-replicas: 3
+replicas: 1
 
 #Labels for application
 labels:
@@ -53,7 +53,7 @@ securityContext:
 
 #pod Antiaffinity key value selection
 podAntiAffinity:
-  enabled: true
+  enabled: false
   key: app
   value: sam-http-server
 
